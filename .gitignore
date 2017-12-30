@@ -1,8 +1,5 @@
 *.class
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
 # Package Files #
 *.jar
 !/lib/*.jar
@@ -14,6 +11,7 @@ out/**
 build/**
 hs_err_pid*
 !.idea/**
+!.gradle/**
 *.log
 !src/**/*.log
 *.iml

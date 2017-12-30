@@ -3,9 +3,7 @@ package org.kpa.hills;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NavigableMap;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinTask;
 
 public class Lake {
@@ -56,15 +54,11 @@ public class Lake {
         BoundLookupTask opposite;
         LandscapeItem currentItem;
         volatile LandscapeItem lastItem;
-        final CountDownLatch foundLatch = new CountDownLatch(1);
+        volatile boolean found = false;
         final NavigableMap<Integer, LandscapeItem> ladders = new ConcurrentSkipListMap<>();
 
         boolean oppositeLowerFound() {
-            return opposite.found() && opposite.lastItem.getHeight() < lastItem.getHeight();
-        }
-
-        boolean found() {
-            return foundLatch.getCount() == 0;
+            return opposite.found && opposite.lastItem.getHeight() < lastItem.getHeight();
         }
 
         ForkJoinTask<LandscapeItem> start(Iterator<LandscapeItem> iter) {
@@ -80,12 +74,11 @@ public class Lake {
                         lastItem = currentItem;
                         if (oppositeLowerFound()) break;
                     } else if (lastItem.getHeight() > currentItem.getHeight()) {
-                        foundLatch.countDown();
                         break;
                     }
                 }
-                foundLatch.countDown();
-                if (opposite.found()) {
+                found = true;
+                if (opposite.found) {
                     int minHeight = Math.min(lastItem.getHeight(), opposite.lastItem.getHeight());
                     lastItem = ladders.ceilingEntry(minHeight).getValue();
                     opposite.lastItem = opposite.ladders.ceilingEntry(minHeight).getValue();
