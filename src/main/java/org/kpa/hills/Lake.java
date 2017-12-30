@@ -1,5 +1,6 @@
 package org.kpa.hills;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -18,10 +19,11 @@ public class Lake {
     public ForkJoinTask<Lake> findBounds() {
         return ForkUtils.fork(() -> {
             BoundLookupTask leftLookup = BoundLookupTask.create();
-            ForkJoinTask<LandscapeItem> leftTask = leftLookup.start(rootItem.leftIterator());
-            ForkJoinTask<LandscapeItem> rightTask = leftLookup.opposite.start(rootItem.rightIterator());
-            leftBound = leftTask.join();
-            rightBound = rightTask.join();
+            Arrays.asList(leftLookup.start(rootItem.leftIterator()),
+                    leftLookup.opposite.start(rootItem.rightIterator())).
+                    forEach(ForkJoinTask::join);
+            leftBound = leftLookup.lastItem;
+            rightBound = leftLookup.opposite.lastItem;
             return Lake.this;
         });
     }
@@ -54,6 +56,7 @@ public class Lake {
         LandscapeItem currentItem;
         volatile LandscapeItem lastItem;
         final CountDownLatch foundLatch = new CountDownLatch(1);
+        final NavigableMap<Integer, LandscapeItem> ladders = new TreeMap<>();
 
         boolean oppositeLowerFound() {
             return opposite.found() && opposite.lastItem.getHeight() < lastItem.getHeight();
@@ -66,13 +69,12 @@ public class Lake {
         ForkJoinTask<LandscapeItem> start(Iterator<LandscapeItem> iter) {
             return ForkUtils.fork(() -> {
                 lastItem = iter.next();
-                NavigableMap<Integer, LandscapeItem> ladders = new TreeMap<>();
                 while (iter.hasNext()) {
                     currentItem = iter.next();
                     if (Thread.currentThread().isInterrupted()) {
+
                         return null;
                     }
-                    if (oppositeLowerFound()) break;
                     if (lastItem.getHeight() < currentItem.getHeight()) {
                         lastItem = currentItem;
                         ladders.put(currentItem.getHeight(), currentItem);
@@ -80,17 +82,14 @@ public class Lake {
                         foundLatch.countDown();
                         break;
                     }
-                }
-                try {
-                    opposite.foundLatch.await();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return null;
-                }
-                if (oppositeLowerFound()) {
-                    this.lastItem = ladders.ceilingEntry(opposite.lastItem.getHeight()).getValue();
+                    if (oppositeLowerFound()) break;
                 }
                 foundLatch.countDown();
+                if (opposite.found()) {
+                    int minHeight = Math.min(lastItem.getHeight(), opposite.lastItem.getHeight());
+                    lastItem = ladders.ceilingEntry(minHeight).getValue();
+                    opposite.lastItem = opposite.ladders.ceilingEntry(minHeight).getValue();
+                }
                 return lastItem;
             });
         }

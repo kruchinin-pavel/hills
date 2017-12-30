@@ -5,6 +5,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -23,7 +24,7 @@ public class RainTest {
 
     @Test
     public void test() {
-        List<Lake> lakes = Rain.drop(landscape);
+        Collection<Lake> lakes = Rain.drop(landscape);
         assertEquals("Lake count", lakeCount, lakes.size());
         assertEquals("Water volume", waterVolume, lakes.stream().mapToInt(Lake::volume).sum());
     }
