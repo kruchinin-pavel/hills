@@ -1,4 +1,4 @@
-package org.kpa;
+package org.kpa.hills;
 
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;

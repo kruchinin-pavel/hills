@@ -9,14 +9,14 @@ import java.util.Arrays;
 import java.util.List;
 
 @RunWith(Parameterized.class)
-public class LakeBoundsTest {
+public class LakeTest {
 
     private final int lowIndex;
     private final int leftIndex;
     private final int rightIndex;
     private final Landscape landscape;
 
-    public LakeBoundsTest(int leftIndex, int lowIndex, int rightIndex, Landscape landscape) {
+    public LakeTest(int leftIndex, int lowIndex, int rightIndex, Landscape landscape) {
         this.lowIndex = lowIndex;
         this.leftIndex = leftIndex;
         this.rightIndex = rightIndex;

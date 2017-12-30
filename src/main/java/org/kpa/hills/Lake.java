@@ -1,7 +1,5 @@
 package org.kpa.hills;
 
-import org.kpa.ForkUtils;
-
 import java.util.Iterator;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -12,6 +10,30 @@ public class Lake {
     private final LandscapeItem rootItem;
     private LandscapeItem leftBound;
     private LandscapeItem rightBound;
+
+    public Lake(LandscapeItem rootItem) {
+        this.rootItem = rootItem;
+    }
+
+    public ForkJoinTask<Lake> findBounds() {
+        return ForkUtils.fork(() -> {
+            BoundLookupTask leftLookup = BoundLookupTask.create();
+            ForkJoinTask<LandscapeItem> leftTask = leftLookup.start(rootItem.leftIterator());
+            ForkJoinTask<LandscapeItem> rightTask = leftLookup.opposite.start(rootItem.rightIterator());
+            leftBound = leftTask.join();
+            rightBound = rightTask.join();
+            return Lake.this;
+        });
+    }
+
+    public LandscapeItem getLeftBound() {
+        return leftBound;
+    }
+
+    public LandscapeItem getRightBound() {
+        return rightBound;
+    }
+
 
     public int volume() {
         int volume = 0;
@@ -27,35 +49,14 @@ public class Lake {
         return volume;
     }
 
-    public Lake(LandscapeItem rootItem) {
-        this.rootItem = rootItem;
-    }
-
-    public LandscapeItem getLeftBound() {
-        return leftBound;
-    }
-
-    public LandscapeItem getRightBound() {
-        return rightBound;
-    }
-
     public static class BoundLookupTask {
-        boolean debug;
-        volatile CountDownLatch foundLatch = new CountDownLatch(1);
-        volatile LandscapeItem lastItem;
-        LandscapeItem currentItem;
         BoundLookupTask opposite;
+        LandscapeItem currentItem;
+        volatile LandscapeItem lastItem;
+        final CountDownLatch foundLatch = new CountDownLatch(1);
 
-        boolean oppositeFoundAndLower() {
+        boolean oppositeLowerFound() {
             return opposite.found() && opposite.lastItem.getHeight() < lastItem.getHeight();
-        }
-
-        boolean heightGrows() {
-            return lastItem.getHeight() < currentItem.getHeight();
-        }
-
-        boolean heightFalls() {
-            return lastItem.getHeight() > currentItem.getHeight();
         }
 
         boolean found() {
@@ -71,11 +72,11 @@ public class Lake {
                     if (Thread.currentThread().isInterrupted()) {
                         return null;
                     }
-                    if (oppositeFoundAndLower()) break;
-                    if (heightGrows()) {
+                    if (oppositeLowerFound()) break;
+                    if (lastItem.getHeight() < currentItem.getHeight()) {
                         lastItem = currentItem;
                         ladders.put(currentItem.getHeight(), currentItem);
-                    } else if (heightFalls()) {
+                    } else if (lastItem.getHeight() > currentItem.getHeight()) {
                         foundLatch.countDown();
                         break;
                     }
@@ -86,10 +87,10 @@ public class Lake {
                     Thread.currentThread().interrupt();
                     return null;
                 }
-                if (oppositeFoundAndLower()) {
+                if (oppositeLowerFound()) {
                     this.lastItem = ladders.ceilingEntry(opposite.lastItem.getHeight()).getValue();
                 }
-                if (!found()) foundLatch.countDown();
+                foundLatch.countDown();
                 return lastItem;
             });
         }
@@ -101,19 +102,6 @@ public class Lake {
             statA.opposite = statB;
             return statA;
         }
-    }
-
-
-    public ForkJoinTask<Lake> findBounds() {
-        return ForkUtils.fork(() -> {
-            BoundLookupTask leftLookup = BoundLookupTask.create();
-            leftLookup.debug = true;
-            ForkJoinTask<LandscapeItem> leftTask = leftLookup.start(rootItem.leftIterator());
-            ForkJoinTask<LandscapeItem> rightTask = leftLookup.opposite.start(rootItem.rightIterator());
-            leftBound = leftTask.join();
-            rightBound = rightTask.join();
-            return Lake.this;
-        });
     }
 
 }
