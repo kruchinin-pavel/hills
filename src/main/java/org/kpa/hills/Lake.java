@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinTask;
 
 public class Lake {
@@ -54,11 +55,15 @@ public class Lake {
         BoundLookupTask opposite;
         LandscapeItem currentItem;
         volatile LandscapeItem lastItem;
-        volatile boolean found = false;
+        final CountDownLatch latch;
         final NavigableMap<Integer, LandscapeItem> ladders = new ConcurrentSkipListMap<>();
 
+        public BoundLookupTask(CountDownLatch latch) {
+            this.latch = latch;
+        }
+
         boolean oppositeLowerFound() {
-            return opposite.found && opposite.lastItem.getHeight() < lastItem.getHeight();
+            return latch.getCount() < 2 && opposite.lastItem.getHeight() < lastItem.getHeight();
         }
 
         ForkJoinTask<LandscapeItem> start(Iterator<LandscapeItem> iter) {
@@ -77,8 +82,8 @@ public class Lake {
                         break;
                     }
                 }
-                found = true;
-                if (opposite.found) {
+                latch.countDown();
+                if (latch.getCount() == 0) {
                     int minHeight = Math.min(lastItem.getHeight(), opposite.lastItem.getHeight());
                     lastItem = ladders.ceilingEntry(minHeight).getValue();
                     opposite.lastItem = opposite.ladders.ceilingEntry(minHeight).getValue();
@@ -88,8 +93,9 @@ public class Lake {
         }
 
         static BoundLookupTask create() {
-            BoundLookupTask statA = new BoundLookupTask();
-            BoundLookupTask statB = new BoundLookupTask();
+            CountDownLatch latch = new CountDownLatch(2);
+            BoundLookupTask statA = new BoundLookupTask(latch);
+            BoundLookupTask statB = new BoundLookupTask(latch);
             statB.opposite = statA;
             statA.opposite = statB;
             return statA;
