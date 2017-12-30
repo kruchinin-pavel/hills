@@ -15,7 +15,7 @@ public class Landscape {
     }
 
     public Iterator<LandscapeItem> leftIterator(int index) {
-        return new Iterator<>() {
+        return new Iterator<LandscapeItem>() {
             final ListIterator<LandscapeItem> iter = indexedDepths.listIterator(index + 1);
 
             @Override

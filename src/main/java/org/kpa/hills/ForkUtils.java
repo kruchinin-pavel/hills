@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 public class ForkUtils {
 
     public static <T> ForkJoinTask<T> create(Supplier<T> runnable) {
-        return new RecursiveTask<>() {
+        return new RecursiveTask<T>() {
             @Override
             protected T compute() {
                 return runnable.get();
