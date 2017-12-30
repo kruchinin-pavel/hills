@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Lake {
     private final LandscapeItem rootItem;
@@ -55,15 +55,15 @@ public class Lake {
         BoundLookupTask opposite;
         LandscapeItem currentItem;
         volatile LandscapeItem lastItem;
-        final CountDownLatch latch;
+        final AtomicInteger taskCount;
         final NavigableMap<Integer, LandscapeItem> ladders = new ConcurrentSkipListMap<>();
 
-        public BoundLookupTask(CountDownLatch latch) {
-            this.latch = latch;
+        public BoundLookupTask(AtomicInteger taskCount) {
+            this.taskCount = taskCount;
         }
 
         boolean oppositeLowerFound() {
-            return latch.getCount() < 2 && opposite.lastItem.getHeight() < lastItem.getHeight();
+            return taskCount.get() < 2 && opposite.lastItem.getHeight() < lastItem.getHeight();
         }
 
         ForkJoinTask<LandscapeItem> start(Iterator<LandscapeItem> iter) {
@@ -82,8 +82,7 @@ public class Lake {
                         break;
                     }
                 }
-                latch.countDown();
-                if (latch.getCount() == 0) {
+                if (taskCount.decrementAndGet() == 0) {
                     int minHeight = Math.min(lastItem.getHeight(), opposite.lastItem.getHeight());
                     lastItem = ladders.ceilingEntry(minHeight).getValue();
                     opposite.lastItem = opposite.ladders.ceilingEntry(minHeight).getValue();
@@ -93,9 +92,9 @@ public class Lake {
         }
 
         static BoundLookupTask create() {
-            CountDownLatch latch = new CountDownLatch(2);
-            BoundLookupTask statA = new BoundLookupTask(latch);
-            BoundLookupTask statB = new BoundLookupTask(latch);
+            AtomicInteger taskCount = new AtomicInteger(2);
+            BoundLookupTask statA = new BoundLookupTask(taskCount);
+            BoundLookupTask statB = new BoundLookupTask(taskCount);
             statB.opposite = statA;
             statA.opposite = statB;
             return statA;
