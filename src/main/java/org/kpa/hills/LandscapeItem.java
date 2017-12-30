@@ -3,8 +3,8 @@ package org.kpa.hills;
 import java.util.Iterator;
 
 public class LandscapeItem {
-    private int index;
-    private int height;
+    private final int index;
+    private final int height;
     private final Landscape landscape;
 
     public LandscapeItem(Landscape landscape, int index, int height) {

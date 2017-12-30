@@ -31,7 +31,6 @@ public class Landscape {
 
     }
 
-
     public Landscape(Integer... heights) {
         AtomicInteger index = new AtomicInteger();
         indexedDepths = Arrays.stream(heights)

@@ -58,7 +58,7 @@ public class Lake {
         final AtomicInteger taskCount;
         final NavigableMap<Integer, LandscapeItem> ladders = new ConcurrentSkipListMap<>();
 
-        public BoundLookupTask(AtomicInteger taskCount) {
+        BoundLookupTask(AtomicInteger taskCount) {
             this.taskCount = taskCount;
         }
 
@@ -100,6 +100,5 @@ public class Lake {
             return statA;
         }
     }
-
 }
 

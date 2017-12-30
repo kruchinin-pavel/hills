@@ -33,5 +33,4 @@ public class Rain {
         }
         return lakeTasks.stream().map(ForkJoinTask::join).collect(Collectors.toList());
     }
-
 }
