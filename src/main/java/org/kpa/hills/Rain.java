@@ -22,7 +22,7 @@ public class Rain {
         }
         List<ForkJoinTask<Lake>> lakes = new ArrayList<>();
         Lake lastLake = null;
-        Iterator<LandscapeItem> iter = landscape.iterator(0);
+        Iterator<LandscapeItem> iter = landscape.rightIterator(0);
         LandscapeItem previous = iter.next();
         while (iter.hasNext()) {
             LandscapeItem current = iter.next();

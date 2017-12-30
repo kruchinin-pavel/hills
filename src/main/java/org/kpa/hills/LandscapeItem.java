@@ -1,15 +1,12 @@
 package org.kpa.hills;
 
-import com.google.common.base.Preconditions;
-
-import java.util.*;
+import java.util.Iterator;
+import java.util.Objects;
 
 public class LandscapeItem {
     private int index;
     private int height;
     private final Landscape landscape;
-    private ListIterator<LandscapeItem> iter;
-    private List<Lake> belongstoLakes = new ArrayList<>();
 
     public LandscapeItem(Landscape landscape, int index, int height) {
         this.landscape = landscape;
@@ -17,34 +14,12 @@ public class LandscapeItem {
         this.height = height;
     }
 
-    public Lake boundToLake(Lake lake) {
-        Preconditions.checkNotNull(lake, "Lake is null");
-        belongstoLakes.add(lake);
-        return lake;
-    }
-
     public Iterator<LandscapeItem> rightIterator() {
-        return landscape.iterator(index);
+        return landscape.rightIterator(index);
     }
 
     public Iterator<LandscapeItem> leftIterator() {
-        return new Iterator<>() {
-            private final ListIterator<LandscapeItem> iter = landscape.iterator(index);
-
-            @Override
-            public boolean hasNext() {
-                return iter.hasPrevious();
-            }
-
-            @Override
-            public LandscapeItem next() {
-                return iter.previous();
-            }
-        };
-    }
-
-    public Landscape getLandscape() {
-        return landscape;
+        return landscape.leftIterator(index);
     }
 
     public int getIndex() {

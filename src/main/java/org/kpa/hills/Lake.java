@@ -1,19 +1,30 @@
 package org.kpa.hills;
 
-import com.google.common.base.Preconditions;
 import org.kpa.ForkUtils;
 
 import java.util.Iterator;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Lake {
     private final LandscapeItem rootItem;
     private LandscapeItem leftBound;
     private LandscapeItem rightBound;
 
-    public int height() {
-        return Math.min(leftBound.getHeight(), rightBound.getHeight());
+    public int volume() {
+        int volume = 0;
+        int height = Math.min(leftBound.getHeight(), rightBound.getHeight());
+        Iterator<LandscapeItem> iter = leftBound.rightIterator();
+        while (iter.hasNext()) {
+            LandscapeItem item = iter.next();
+            if (item.getIndex() >= rightBound.getIndex()) {
+                break;
+            }
+            volume += Math.max(height - item.getHeight(), 0);
+        }
+        return volume;
     }
 
     public Lake(LandscapeItem rootItem) {
@@ -28,31 +39,82 @@ public class Lake {
         return rightBound;
     }
 
+    public static class BoundLookupTask {
+        boolean debug;
+        volatile CountDownLatch foundLatch = new CountDownLatch(1);
+        volatile LandscapeItem lastItem;
+        LandscapeItem currentItem;
+        BoundLookupTask opposite;
+
+        boolean oppositeFoundAndLower() {
+            return opposite.found() && opposite.lastItem.getHeight() < lastItem.getHeight();
+        }
+
+        boolean heightGrows() {
+            return lastItem.getHeight() < currentItem.getHeight();
+        }
+
+        boolean heightFalls() {
+            return lastItem.getHeight() > currentItem.getHeight();
+        }
+
+        boolean found() {
+            return foundLatch.getCount() == 0;
+        }
+
+        ForkJoinTask<LandscapeItem> start(Iterator<LandscapeItem> iter) {
+            return ForkUtils.fork(() -> {
+                lastItem = iter.next();
+                NavigableMap<Integer, LandscapeItem> ladders = new TreeMap<>();
+                while (iter.hasNext()) {
+                    currentItem = iter.next();
+                    if (Thread.currentThread().isInterrupted()) {
+                        return null;
+                    }
+                    if (oppositeFoundAndLower()) break;
+                    if (heightGrows()) {
+                        lastItem = currentItem;
+                        ladders.put(currentItem.getHeight(), currentItem);
+                    } else if (heightFalls()) {
+                        foundLatch.countDown();
+                        break;
+                    }
+                }
+                try {
+                    opposite.foundLatch.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return null;
+                }
+                if (oppositeFoundAndLower()) {
+                    this.lastItem = ladders.ceilingEntry(opposite.lastItem.getHeight()).getValue();
+                }
+                if (!found()) foundLatch.countDown();
+                return lastItem;
+            });
+        }
+
+        static BoundLookupTask create() {
+            BoundLookupTask statA = new BoundLookupTask();
+            BoundLookupTask statB = new BoundLookupTask();
+            statB.opposite = statA;
+            statA.opposite = statB;
+            return statA;
+        }
+    }
+
+
     public ForkJoinTask<Lake> findBounds() {
         return ForkUtils.fork(() -> {
-            ForkJoinTask<LandscapeItem> taskLeft = ForkUtils.fork(() -> lookupNearestBound(rootItem.leftIterator()));
-            ForkJoinTask<LandscapeItem> taskRight = ForkUtils.fork(() -> lookupNearestBound(rootItem.rightIterator()));
-            leftBound = taskLeft.join();
-            rightBound = taskRight.join();
+            BoundLookupTask leftLookup = BoundLookupTask.create();
+            leftLookup.debug = true;
+            ForkJoinTask<LandscapeItem> leftTask = leftLookup.start(rootItem.leftIterator());
+            ForkJoinTask<LandscapeItem> rightTask = leftLookup.opposite.start(rootItem.rightIterator());
+            leftBound = leftTask.join();
+            rightBound = rightTask.join();
             return Lake.this;
         });
     }
 
-    private LandscapeItem lookupNearestBound(Iterator<LandscapeItem> iter) {
-        if (Thread.currentThread().isInterrupted()) {
-            return null;
-        }
-        LandscapeItem lastItem = rootItem;
-        while (iter.hasNext()) {
-            LandscapeItem item = iter.next();
-            if (lastItem.getHeight() < item.getHeight()) {
-                lastItem = item;
-            } else if (item.getHeight() > item.getHeight()) {
-                break;
-            }
-        }
-        Preconditions.checkArgument(lastItem != rootItem, "Didn't mange to find bound.");
-        return lastItem;
-    }
 }
 
