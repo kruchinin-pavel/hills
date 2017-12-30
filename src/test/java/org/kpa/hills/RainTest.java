@@ -31,7 +31,7 @@ public class RainTest {
     }
 
     @Parameterized.Parameters
-    public static List<Object[]> data() throws IOException {
+    public static List<Object[]> data() {
         return Arrays.asList(
                 // Original test case from FxPro
                 new Object[]{2, 8, new Landscape(5, 2, 3, 4, 5, 4, 1, 3, 1)},
@@ -42,6 +42,5 @@ public class RainTest {
                 new Object[]{1, 4, new Landscape(5, 3, 3, 5, 5, 5)},
                 new Object[]{0, 0, new Landscape(5, 5, 5, 5, 3, 3)});
     }
-
 
 }
