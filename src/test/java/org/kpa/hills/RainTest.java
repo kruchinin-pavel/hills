@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -30,9 +31,13 @@ public class RainTest {
     }
 
     @Parameterized.Parameters
-    public static List<Object[]> data() {
+    public static List<Object[]> data() throws IOException {
         return Arrays.asList(
+                // Original test case from FxPro
                 new Object[]{2, 8, new Landscape(5, 2, 3, 4, 5, 4, 1, 3, 1)},
+                // Rest test cases
+                new Object[]{1, 2, new Landscape(1, 2, 3, 4, 5, 4, 1, 3, 1)},
+                new Object[]{0, 0, new Landscape(1, 2, 3, 4, 5, 4, 3, 2, 1)},
                 new Object[]{2, 3, new Landscape(5, 3, 5, 4, 5)});
     }
 

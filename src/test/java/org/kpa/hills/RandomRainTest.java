@@ -3,8 +3,6 @@ package org.kpa.hills;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,7 +12,6 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
 public class RandomRainTest {
-    private static final Logger logger = LoggerFactory.getLogger(RandomRainTest.class);
     private final Landscape landscape;
 
     public RandomRainTest(Integer[] data) {
@@ -23,9 +20,7 @@ public class RandomRainTest {
 
     @Test
     public void test() {
-        long nanos = System.nanoTime();
         Collection<Lake> lakes = Rain.drop(landscape);
-        logger.info("Completed at: {}sec", (System.nanoTime() - nanos) / 1e6);
         assertTrue("Lake count >0 ", lakes.size() > 0);
         assertTrue("Water volume >0", lakes.stream().mapToInt(Lake::volume).sum() > 0);
     }

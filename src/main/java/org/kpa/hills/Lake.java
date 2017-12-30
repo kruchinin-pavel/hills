@@ -72,17 +72,16 @@ public class Lake {
                 while (iter.hasNext()) {
                     currentItem = iter.next();
                     if (Thread.currentThread().isInterrupted()) {
-
                         return null;
                     }
                     if (lastItem.getHeight() < currentItem.getHeight()) {
-                        lastItem = currentItem;
                         ladders.put(currentItem.getHeight(), currentItem);
+                        lastItem = currentItem;
+                        if (oppositeLowerFound()) break;
                     } else if (lastItem.getHeight() > currentItem.getHeight()) {
                         foundLatch.countDown();
                         break;
                     }
-                    if (oppositeLowerFound()) break;
                 }
                 foundLatch.countDown();
                 if (opposite.found()) {

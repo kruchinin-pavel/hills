@@ -11,16 +11,17 @@ public class HillsGenerator {
     private HillsGenerator(double startHill, double drift, double sigma) {
         this.lastHill = startHill;
         this.drift = drift;
-        distrib = new NormalDistribution(0, sigma);
+        distrib = new NormalDistribution(0., sigma);
     }
 
     private int nextHill() {
         lastHill *= (1 + drift + distrib.sample());
-        return Math.max((int) Precision.round(lastHill, 0), 0);
+        lastHill = Math.min(Math.max((int) Precision.round(lastHill, 0), 0), 32000);
+        return (int) lastHill;
     }
 
     public static Integer[] generateHills(int count) {
-        HillsGenerator generator = new HillsGenerator(20, .02, .1);
+        HillsGenerator generator = new HillsGenerator(16000, .0, .01);
         Integer[] ret = new Integer[count];
         for (int i = 0; i < count; i++) {
             ret[i] = generator.nextHill();
