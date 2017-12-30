@@ -11,11 +11,10 @@ import java.util.stream.Collectors;
 public class Rain {
 
     public static List<Lake> drop(Landscape landscape) {
-        Rain rain = new Rain();
-        return new ForkJoinPool().invoke(ForkUtils.create(() -> rain.fillLakes(landscape)));
+        return new ForkJoinPool().invoke(ForkUtils.create(() -> fillLakes(landscape)));
     }
 
-    private List<Lake> fillLakes(Landscape landscape) {
+    private static List<Lake> fillLakes(Landscape landscape) {
         List<ForkJoinTask<Lake>> lakeTasks = new ArrayList<>();
         Iterator<LandscapeItem> iter = landscape.rightIterator(0);
         LandscapeItem previous = iter.next();
