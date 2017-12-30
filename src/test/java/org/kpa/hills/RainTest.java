@@ -38,7 +38,9 @@ public class RainTest {
                 // Rest test cases
                 new Object[]{1, 2, new Landscape(1, 2, 3, 4, 5, 4, 1, 3, 1)},
                 new Object[]{0, 0, new Landscape(1, 2, 3, 4, 5, 4, 3, 2, 1)},
-                new Object[]{2, 3, new Landscape(5, 3, 5, 4, 5)});
+                new Object[]{2, 3, new Landscape(5, 3, 5, 4, 5)},
+                new Object[]{1, 4, new Landscape(5, 3, 3, 5, 5, 5)},
+                new Object[]{0, 0, new Landscape(5, 5, 5, 5, 3, 3)});
     }
 
 

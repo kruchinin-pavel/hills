@@ -24,6 +24,7 @@ public class Rain {
                 return Collections.emptyList();
             }
             LandscapeItem next = iter.next();
+            if (next.getHeight() == current.getHeight()) continue;
             if (previous.getHeight() > current.getHeight() && current.getHeight() < next.getHeight()) {
                 lakeTasks.add(new Lake(current).findBounds());
             }
