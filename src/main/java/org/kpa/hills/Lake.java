@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinTask;
 
@@ -56,7 +57,7 @@ public class Lake {
         LandscapeItem currentItem;
         volatile LandscapeItem lastItem;
         final CountDownLatch foundLatch = new CountDownLatch(1);
-        final NavigableMap<Integer, LandscapeItem> ladders = new TreeMap<>();
+        final NavigableMap<Integer, LandscapeItem> ladders = new ConcurrentSkipListMap<>();
 
         boolean oppositeLowerFound() {
             return opposite.found() && opposite.lastItem.getHeight() < lastItem.getHeight();
