@@ -3,7 +3,7 @@ package org.kpa.hills;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.TreeMap;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -56,7 +56,7 @@ public class Lake {
         LandscapeItem currentItem;
         volatile LandscapeItem lastItem;
         final AtomicInteger taskCount;
-        final NavigableMap<Integer, LandscapeItem> ladders = new ConcurrentSkipListMap<>();
+        final NavigableMap<Integer, LandscapeItem> ladders = new TreeMap<>();
 
         BoundLookupTask(AtomicInteger taskCount) {
             this.taskCount = taskCount;
