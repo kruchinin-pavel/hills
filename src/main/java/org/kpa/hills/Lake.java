@@ -51,7 +51,7 @@ public class Lake {
         return volume;
     }
 
-    public static class BoundLookupTask {
+    private static class BoundLookupTask {
         BoundLookupTask opposite;
         volatile LandscapeItem lastItem;
         final AtomicInteger taskCount;
