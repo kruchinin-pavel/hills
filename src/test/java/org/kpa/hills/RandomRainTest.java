@@ -28,7 +28,7 @@ public class RandomRainTest {
     @Parameterized.Parameters
     public static List<Object[]> data() {
         List<Object[]> parameters = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             parameters.add(new Object[]{HillsGenerator.generateHills(32000)});
         }
         return parameters;

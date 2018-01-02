@@ -53,7 +53,6 @@ public class Lake {
 
     public static class BoundLookupTask {
         BoundLookupTask opposite;
-        LandscapeItem currentItem;
         volatile LandscapeItem lastItem;
         final AtomicInteger taskCount;
         final NavigableMap<Integer, LandscapeItem> ladders = new TreeMap<>();
@@ -70,7 +69,7 @@ public class Lake {
             return ForkUtils.fork(() -> {
                 lastItem = iter.next();
                 while (iter.hasNext()) {
-                    currentItem = iter.next();
+                    LandscapeItem currentItem = iter.next();
                     if (Thread.currentThread().isInterrupted()) {
                         return null;
                     }
